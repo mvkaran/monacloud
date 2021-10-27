@@ -53,7 +53,7 @@ jobs:
          id: setcontext
 
        - name: Get tag name
-         uses: olegtarasov/get-tag@v2
+         uses: olegtarasov/get-tag@v2.1
 
        - name: Get new container image tag
          id: image-tag
