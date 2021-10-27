@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
         - name: monacloud-image
-          image: 'mvkaran/monacloud:1.0.0'
+          image: ghcr.io/mvkaran/monacloud:0.1.0
           ports:
             - name: webserver
               containerPort: 3000
