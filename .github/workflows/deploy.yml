@@ -71,9 +71,6 @@ jobs:
   deploy-aws:
     needs: build-and-push
     runs-on: ubuntu-latest
-    env:
-      AWS_REGION: ${{secrets.AWS_REGION}}
-      EKS_CLUSTER_NAME: monacloud
     environment:
       name: aws
       url: http://aws.monacloud.mvkaran.net
@@ -87,11 +84,11 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{env.AWS_REGION}}
+          aws-region: ap-south-1
 
       - name: Set Kubeconfig
         run: |
-         aws eks --region $AWS_REGION update-kubeconfig --name $EKS_CLUSTER_NAME 
+         aws eks --region ap-south-1 update-kubeconfig --name monacloud 
 
       - name: Get tag name
         uses: olegtarasov/get-tag@v2.1
@@ -109,4 +106,39 @@ jobs:
           images: |
             ${{ steps.image-tag.outputs.image }}
 
+  deploy-google-cloud:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    environment:
+      name: google-cloud
+      url: http://gcp.monacloud.mvkaran.net
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+
+      - name: Get GKE credentials
+        id: get-credentials
+        uses: google-github-actions/get-gke-credentials@main
+        with:
+          cluster_name: monacloud
+          location: us-central1
+          credentials: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+
+      - name: Get tag name
+        uses: olegtarasov/get-tag@v2.1
+
+      - name: Get new container image tag
+        id: image-tag
+        run: |
+            echo "::set-output name=image::ghcr.io/$GITHUB_REPOSITORY:$GIT_TAG_NAME"
+
+      - name: Deploy to Kubernetes
+        uses: Azure/k8s-deploy@v1
+        with:
+          manifests: |
+            k8s.yaml
+          images: |
+            ${{ steps.image-tag.outputs.image }}
+  
       
