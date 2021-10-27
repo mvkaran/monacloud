@@ -67,4 +67,46 @@ jobs:
               k8s.yaml
             images: |
               ${{ steps.image-tag.outputs.image }}
-    
+
+  deploy-aws:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    env:
+      AWS_REGION: ${{secrets.AWS_REGION}}
+      EKS_CLUSTER_NAME: monacloud
+    environment:
+      name: aws
+      url: http://aws.monacloud.mvkaran.net
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{env.AWS_REGION}}
+
+      - name: Set Kubeconfig
+        run: |
+         aws eks --region $AWS_REGION update-kubeconfig --name $EKS_CLUSTER_NAME 
+
+      - name: Get tag name
+        uses: olegtarasov/get-tag@v2.1
+
+      - name: Get new container image tag
+        id: image-tag
+        run: |
+            echo "::set-output name=image::ghcr.io/$GITHUB_REPOSITORY:$GIT_TAG_NAME"
+
+      - name: Deploy to Kubernetes
+        uses: Azure/k8s-deploy@v1
+        with:
+          manifests: |
+            k8s.yaml
+          images: |
+            ${{ steps.image-tag.outputs.image }}
+
+      
