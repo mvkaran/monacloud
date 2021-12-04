@@ -1,2 +1,2 @@
 # MonaCloud
-A demo app for GitHub Actions, using Environments and Packages
+A multi-cloud demo app for GitHub Actions, using Environments and Packages
