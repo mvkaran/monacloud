@@ -126,6 +126,13 @@ jobs:
           author: GitHubIndiaBot
           state: open
 
+      - name: Enable GitHub auto-merge
+        if: ${{ steps.find-pull-request.outputs.number }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUBINDIABOT_TOKEN }}
+          AUTOMERGE_PR_NUMBER: ${{ steps.find-pull-request.outputs.number }}
+        run: node .github/actions-scripts/enable-automerge.mjs
+
       - name: Approve pull request
         if: ${{ steps.find-pull-request.outputs.number }}
         uses: juliangruber/approve-pull-request-action@c530832d4d346c597332e20e03605aa94fa150a8
@@ -143,7 +150,7 @@ jobs:
               await github.issues.lock({
                 ...context.repo,
                 issue_number: parseInt(${{ steps.find-pull-request.outputs.number }}),
-                lock_reason: 'spam prevention'
+                lock_reason: 'resolved'
               })
               console.log('Locked the pull request to prevent spam!')
             } catch (error) {
@@ -197,9 +204,4 @@ jobs:
             } else {
               console.log(`Branch is already up-to-date`)
             }
-      - name: Enable GitHub auto-merge
-        if: ${{ steps.find-pull-request.outputs.number }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUBINDIABOT_TOKEN }}
-          AUTOMERGE_PR_NUMBER: ${{ steps.find-pull-request.outputs.number }}
-        run: node .github/actions-scripts/enable-automerge.mjs
+    
