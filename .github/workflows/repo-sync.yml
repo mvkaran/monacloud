@@ -79,6 +79,16 @@ jobs:
       - name: Check out repo
         uses: actions/checkout@1e204e9a9253d643386038d443f96446fa156a97
 
+      - name: Setup node
+        uses: actions/setup-node@04c56d2f954f1e4c69436aa54cfef261a018f458
+        with:
+          node-version: 16.13.x
+          cache: npm
+
+      - name: Install dependencies for actions-scripts
+        working-directory: .github/actions-scripts
+        run: npm ci 
+
       - name: Sync repo to branch
         uses: repo-sync/github-sync@3832fe8e2be32372e1b3970bbae8e7079edeec88
         env:
