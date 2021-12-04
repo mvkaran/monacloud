@@ -98,8 +98,8 @@ jobs:
         with:
           source_branch: repo-sync
           destination_branch: main
-          pr_title: 'repo sync'
-          pr_body: "This is an automated pull request to sync changes between the public and private repos.\n\n:robot: This pull request should be merged (not squashed) to preserve continuity across repos, so please let a bot do the merging!"
+          pr_title: 'New Updates'
+          pr_body: "This is an automated pull request to sync updates between the public and private repos.\n\n:robot: This pull request should be merged (not squashed) to preserve continuity across repos, so please let a bot do the merging!"
           pr_label: automated-reposync-pr
           github_token: ${{ secrets.GITHUBINDIABOT_TOKEN }}
           # This will exit 0 if there's no difference between `repo-sync`
@@ -120,7 +120,7 @@ jobs:
         if: ${{ steps.find-pull-request.outputs.number }}
         uses: juliangruber/approve-pull-request-action@c530832d4d346c597332e20e03605aa94fa150a8
         with:
-          github-token: ${{ secrets.PR_APPROVER_TOKEN }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           number: ${{ steps.find-pull-request.outputs.number }}
 
       # In case we get far too much spam ;_;
@@ -133,7 +133,7 @@ jobs:
               await github.issues.lock({
                 ...context.repo,
                 issue_number: parseInt(${{ steps.find-pull-request.outputs.number }}),
-                lock_reason: 'spam'
+                lock_reason: 'spam prevention'
               })
               console.log('Locked the pull request to prevent spam!')
             } catch (error) {
@@ -192,4 +192,4 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUBINDIABOT_TOKEN }}
           AUTOMERGE_PR_NUMBER: ${{ steps.find-pull-request.outputs.number }}
-        run: node .github/actions-scripts/enable-automerge.js
+        run: node .github/actions-scripts/enable-automerge.mjs
