@@ -25,10 +25,10 @@ jobs:
       - name: Set context from Kubeconfig
         uses: azure/k8s-set-context@v1
         with:
-        method: kubeconfig
-        kubeconfig: ${{ secrets.KUBECONFIG }} 
-        context: ${{ secrets.CLUSTER_NAME }} 
-        id: setcontext
+          method: kubeconfig
+          kubeconfig: ${{ secrets.KUBECONFIG }} 
+          context: ${{ secrets.CLUSTER_NAME }} 
+          id: setcontext
 
       - name: Deploy to Kubernetes
         uses: Azure/k8s-deploy@v1
