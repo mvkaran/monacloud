@@ -19,22 +19,42 @@ jobs:
       url: http://azure.monacloud.mvkaran.net
     
     steps:
-       - name: Checkout repo
-         uses: actions/checkout@v2
-         
-       - name: Set context from Kubeconfig
-         uses: azure/k8s-set-context@v1
-         with:
-          method: kubeconfig
-          kubeconfig: ${{ secrets.KUBECONFIG }} 
-          context: ${{ secrets.CLUSTER_NAME }} 
-         id: setcontext
+      - name: Checkout repo
+        uses: actions/checkout@v2
+        
+      - name: Set context from Kubeconfig
+        uses: azure/k8s-set-context@v1
+        with:
+        method: kubeconfig
+        kubeconfig: ${{ secrets.KUBECONFIG }} 
+        context: ${{ secrets.CLUSTER_NAME }} 
+        id: setcontext
 
-       - name: Deploy to Kubernetes
-         uses: Azure/k8s-deploy@v1
-         with:
-            manifests: |
-              k8s.yaml
+      - name: Deploy to Kubernetes
+        uses: Azure/k8s-deploy@v1
+        with:
+          manifests: |
+            k8s.yaml
+
+      - name: Get service ingress IP address
+        uses: stefanprodan/kube-tools@v1
+        with:
+          kubectl: 1.21.1
+          command: |
+            echo "SVC_INGRESS_IP=$(kubectl get svc monacloud-svc -o jsonpath='{.status.loadBalancer.ingress[0].ip}')" >> $GITHUB_ENV
+
+      - name: Update Cloudflare DNS records
+        uses: rez0n/create-dns-record@v2.1
+        with:
+          type: "A"
+          name: "azure.monacloud"
+          content: ${{ env.SVC_INGRESS_IP }}
+          ttl: 60
+          proxied: false
+          token: ${{ secrets.CLOUDFLARE_TOKEN }}
+          zone: ${{ secrets.CLOUDFLARE_ZONE_ID }}
+
+        
 
   deploy-aws:
     if: contains(github.event.inputs.cloud, 'aws') || github.event.inputs.cloud == 'all'
