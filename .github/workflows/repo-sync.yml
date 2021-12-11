@@ -1,7 +1,7 @@
 name: Repo Sync
 
 # **What it does**:
-#  - close-invalid-repo-sync: Close repo sync pull requests not created by GitHubIndiaBot or a Hubber.
+#  - close-invalid-repo-sync: Close repo sync pull requests not created by me.
 #  - repo-sync: Syncs monacloud and monacloud-private.
 # **Why we have it**:
 #  - close-invalid-repo-sync: Another form of spam prevention for the open-source repository.
@@ -10,6 +10,7 @@ name: Repo Sync
 
 on:
   workflow_dispatch:
+  
 
 jobs:
   close-invalid-repo-sync:
