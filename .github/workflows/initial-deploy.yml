@@ -44,9 +44,9 @@ jobs:
         uses: rez0n/create-dns-record@v2.1
         with:
           type: "A"
-          name: "azure.monacloud"
+          name: "azure.monacloud.mvkaran.net"
           content: ${{ env.SVC_INGRESS_IP }}
-          ttl: 60
+          ttl: 1
           proxied: false
           token: ${{ secrets.CLOUDFLARE_TOKEN }}
           zone: ${{ secrets.CLOUDFLARE_ZONE_ID }}
