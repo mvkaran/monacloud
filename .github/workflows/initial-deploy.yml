@@ -24,11 +24,11 @@ jobs:
         
       - name: Set context from Kubeconfig
         uses: azure/k8s-set-context@v1
+        id: setcontext
         with:
           method: kubeconfig
           kubeconfig: ${{ secrets.KUBECONFIG }} 
-          context: ${{ secrets.CLUSTER_NAME }} 
-          id: setcontext
+          context: ${{ secrets.CLUSTER_NAME }}          
 
       - name: Deploy to Kubernetes
         uses: Azure/k8s-deploy@v1
@@ -37,10 +37,7 @@ jobs:
             k8s.yaml
 
       - name: Get service ingress IP address
-        uses: stefanprodan/kube-tools@v1
-        with:
-          kubectl: 1.21.1
-          command: |
+        run: |
             echo "SVC_INGRESS_IP=$(kubectl get svc monacloud-svc -o jsonpath='{.status.loadBalancer.ingress[0].ip}')" >> $GITHUB_ENV
 
       - name: Update Cloudflare DNS records
