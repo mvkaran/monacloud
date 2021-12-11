@@ -38,7 +38,6 @@ jobs:
 
   deploy-aws:
     if: contains(github.event.inputs.cloud, 'aws') || github.event.inputs.cloud == 'all'
-    needs: build-and-push
     runs-on: ubuntu-latest
     environment:
       name: aws
@@ -67,7 +66,6 @@ jobs:
 
   deploy-google-cloud:
     if: contains(github.event.inputs.cloud, 'gcp') || github.event.inputs.cloud == 'all'
-    needs: build-and-push
     runs-on: ubuntu-latest
     environment:
       name: google-cloud
