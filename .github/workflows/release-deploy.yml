@@ -41,32 +41,47 @@ jobs:
       url: http://azure.monacloud.mvkaran.net
     
     steps:
-       - name: Checkout repo
-         uses: actions/checkout@v2
+      - name: Checkout repo
+        uses: actions/checkout@v2
          
-       - name: Set context from Kubeconfig
-         uses: azure/k8s-set-context@v1
-         with:
-          method: kubeconfig
-          kubeconfig: ${{ secrets.KUBECONFIG }} 
-          context: monacloud 
-         id: setcontext
+      - name: Set context from Kubeconfig
+        uses: azure/k8s-set-context@v1
+        id: setcontext
+        with:
+        method: kubeconfig
+        kubeconfig: ${{ secrets.KUBECONFIG }} 
+        context: ${{ secrets.CLUSTER_NAME }}  
 
-       - name: Get tag name
-         uses: olegtarasov/get-tag@v2.1
+      - name: Get tag name
+        uses: olegtarasov/get-tag@v2.1
 
-       - name: Get new container image tag
-         id: image-tag
-         run: |
-            echo "::set-output name=image::ghcr.io/$GITHUB_REPOSITORY:$GIT_TAG_NAME"
+      - name: Get new container image tag
+        id: image-tag
+        run: |
+          echo "::set-output name=image::ghcr.io/$GITHUB_REPOSITORY:$GIT_TAG_NAME"
 
-       - name: Deploy to Kubernetes
-         uses: Azure/k8s-deploy@v1
-         with:
-            manifests: |
-              k8s.yaml
-            images: |
-              ${{ steps.image-tag.outputs.image }}
+      - name: Deploy to Kubernetes
+        uses: Azure/k8s-deploy@v1
+        with:
+          manifests: |
+            k8s.yaml
+          images: |
+            ${{ steps.image-tag.outputs.image }}
+
+      - name: Get service ingress IP address
+        run: |
+            echo "SVC_INGRESS_IP=$(kubectl get svc monacloud-svc -o jsonpath='{.status.loadBalancer.ingress[0].ip}')" >> $GITHUB_ENV
+
+      - name: Update Cloudflare DNS records
+        uses: rez0n/create-dns-record@v2.1
+        with:
+          type: "A"
+          name: "azure.monacloud.mvkaran.net"
+          content: ${{ env.SVC_INGRESS_IP }}
+          ttl: 1
+          proxied: false
+          token: ${{ secrets.CLOUDFLARE_TOKEN }}
+          zone: ${{ secrets.CLOUDFLARE_ZONE_ID }}
 
   deploy-aws:
     needs: build-and-push
@@ -84,11 +99,13 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ap-south-1
+          aws-region: us-east-1
 
       - name: Set Kubeconfig
+        env:
+              CLUSTER_NAME: ${{ secrets.CLUSTER_NAME }}
         run: |
-         aws eks --region ap-south-1 update-kubeconfig --name monacloud 
+         aws eks --region us-east-1 update-kubeconfig --name "$CLUSTER_NAME" 
 
       - name: Get tag name
         uses: olegtarasov/get-tag@v2.1
@@ -106,7 +123,22 @@ jobs:
           images: |
             ${{ steps.image-tag.outputs.image }}
 
-  deploy-google-cloud:
+      - name: Get service ingress hostname
+        run: |
+            echo "SVC_INGRESS_HOSTNAME=$(kubectl get svc monacloud-svc -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')" >> $GITHUB_ENV
+
+      - name: Update Cloudflare DNS records
+        uses: rez0n/create-dns-record@v2.1
+        with:
+          type: "CNAME"
+          name: "aws.monacloud.mvkaran.net"
+          content: ${{ env.SVC_INGRESS_HOSTNAME }}
+          ttl: 1
+          proxied: false
+          token: ${{ secrets.CLOUDFLARE_TOKEN }}
+          zone: ${{ secrets.CLOUDFLARE_ZONE_ID }}
+
+  deploy-gcp:
     needs: build-and-push
     runs-on: ubuntu-latest
     environment:
@@ -117,13 +149,18 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v2
 
+      - name: Configure GCP credentials
+        id: 'auth'
+        uses: 'google-github-actions/auth@v0'
+        with:
+          credentials_json: '${{ secrets.GCP_SERVICE_ACCOUNT }}'
+
       - name: Get GKE credentials
         id: get-credentials
         uses: google-github-actions/get-gke-credentials@main
         with:
-          cluster_name: monacloud
+          cluster_name: ${{ secrets.CLUSTER_NAME }}
           location: us-central1
-          credentials: ${{ secrets.GCP_SERVICE_ACCOUNT }}
 
       - name: Get tag name
         uses: olegtarasov/get-tag@v2.1
@@ -140,5 +177,20 @@ jobs:
             k8s.yaml
           images: |
             ${{ steps.image-tag.outputs.image }}
+
+      - name: Get service ingress IP address
+        run: |
+            echo "SVC_INGRESS_IP=$(kubectl get svc monacloud-svc -o jsonpath='{.status.loadBalancer.ingress[0].ip}')" >> $GITHUB_ENV
+
+      - name: Update Cloudflare DNS records
+        uses: rez0n/create-dns-record@v2.1
+        with:
+          type: "A"
+          name: "gcp.monacloud.mvkaran.net"
+          content: ${{ env.SVC_INGRESS_IP }}
+          ttl: 1
+          proxied: false
+          token: ${{ secrets.CLOUDFLARE_TOKEN }}
+          zone: ${{ secrets.CLOUDFLARE_ZONE_ID }}
   
       
