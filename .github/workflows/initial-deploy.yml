@@ -109,13 +109,18 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v2
 
+      - name: Configure GCP credentials
+        id: 'auth'
+        uses: 'google-github-actions/auth@v0'
+        with:
+          credentials_json: '${{ secrets.GCP_SERVICE_ACCOUNT }}'
+
       - name: Get GKE credentials
         id: get-credentials
         uses: google-github-actions/get-gke-credentials@main
         with:
           cluster_name: ${{ secrets.CLUSTER_NAME }}
           location: us-central1
-          credentials: ${{ secrets.GCP_SERVICE_ACCOUNT }}
 
       - name: Deploy to Kubernetes
         uses: Azure/k8s-deploy@v1
