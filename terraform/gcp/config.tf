@@ -6,7 +6,7 @@ resource "random_string" "suffix" {
 }
 
 variable "gke_num_nodes" {
-  default     = 2
+  default     = 1
   description = "number of gke nodes"
 }
 
@@ -15,8 +15,13 @@ variable "project_id" {
 }
 
 
+data "github_repository" "repo" {
+  full_name = "mvkaran/monacloud"
+}
+
 locals {
   cluster_name = "tf-monacloud-${random_string.suffix.result}"
   region = "us-central1"
   zone = "us-central1-a"
+  github_env = "google-cloud"
 }

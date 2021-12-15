@@ -1,4 +1,7 @@
 
+# Configure the GitHub Provider with GITHUB_TOKEN environment variable
+provider "github" {}
+
 # GKE cluster
 resource "google_container_cluster" "primary" {
   name     = local.cluster_name
@@ -39,4 +42,19 @@ resource "google_container_node_pool" "primary_nodes" {
       disable-legacy-endpoints = "true"
     }
   }
+}
+
+# Fetch the GitHub repository and Actions environment where secrets have to be updated for use by Actions workflows
+resource "github_repository_environment" "repo_environment" {
+  repository       = data.github_repository.repo.name
+  environment      = local.github_env
+}
+
+
+# Upsert a secret named CLUSTER_NAME to hold the name of the cluster used for setting kubectl context
+resource "github_actions_environment_secret" "cluster_name" {
+  repository       = data.github_repository.repo.name
+  environment      = github_repository_environment.repo_environment.environment
+  secret_name      = "CLUSTER_NAME"
+  plaintext_value  = local.cluster_name
 }

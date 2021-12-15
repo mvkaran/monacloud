@@ -91,14 +91,14 @@ jobs:
         uses: rez0n/create-dns-record@v2.1
         with:
           type: "CNAME"
-          name: "azure.monacloud.mvkaran.net"
+          name: "aws.monacloud.mvkaran.net"
           content: ${{ env.SVC_INGRESS_HOSTNAME }}
           ttl: 1
           proxied: false
           token: ${{ secrets.CLOUDFLARE_TOKEN }}
           zone: ${{ secrets.CLOUDFLARE_ZONE_ID }}
 
-  deploy-google-cloud:
+  deploy-gcp:
     if: contains(github.event.inputs.cloud, 'gcp') || github.event.inputs.cloud == 'all'
     runs-on: ubuntu-latest
     environment:
@@ -113,7 +113,7 @@ jobs:
         id: get-credentials
         uses: google-github-actions/get-gke-credentials@main
         with:
-          cluster_name: monacloud
+          cluster_name: ${{ secrets.CLUSTER_NAME }}
           location: us-central1
           credentials: ${{ secrets.GCP_SERVICE_ACCOUNT }}
 
