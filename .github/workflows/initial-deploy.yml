@@ -128,3 +128,17 @@ jobs:
           manifests: |
             k8s.yaml
       
+      - name: Get service ingress IP address
+        run: |
+            echo "SVC_INGRESS_IP=$(kubectl get svc monacloud-svc -o jsonpath='{.status.loadBalancer.ingress[0].ip}')" >> $GITHUB_ENV
+
+      - name: Update Cloudflare DNS records
+        uses: rez0n/create-dns-record@v2.1
+        with:
+          type: "A"
+          name: "gcp.monacloud.mvkaran.net"
+          content: ${{ env.SVC_INGRESS_IP }}
+          ttl: 1
+          proxied: false
+          token: ${{ secrets.CLOUDFLARE_TOKEN }}
+          zone: ${{ secrets.CLOUDFLARE_ZONE_ID }}
