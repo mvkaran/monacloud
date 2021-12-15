@@ -67,7 +67,6 @@ jobs:
           images: |
             ${{ steps.image-tag.outputs.image }}
             
-
       - name: Get service ingress IP address
         run: |
             echo "SVC_INGRESS_IP=$(kubectl get svc monacloud-svc -o jsonpath='{.status.loadBalancer.ingress[0].ip}')" >> $GITHUB_ENV
@@ -87,6 +86,7 @@ jobs:
 
   deploy-aws:
     if: contains(github.event.inputs.cloud, 'aws') || github.event.inputs.cloud == 'all'
+    needs: build-and-push
     runs-on: ubuntu-latest
     environment:
       name: aws
@@ -109,11 +109,18 @@ jobs:
         run: |
          aws eks --region us-east-1 update-kubeconfig --name "$CLUSTER_NAME" 
 
+      - name: Get new container image tag
+        id: image-tag
+        run: |
+          echo "::set-output name=image::ghcr.io/$GITHUB_REPOSITORY:latest"
+      
       - name: Deploy to Kubernetes
         uses: Azure/k8s-deploy@v1
         with:
           manifests: |
             k8s.yaml
+          images: |
+            ${{ steps.image-tag.outputs.image }}
 
       - name: Get service ingress hostname
         run: |
@@ -132,6 +139,7 @@ jobs:
 
   deploy-gcp:
     if: contains(github.event.inputs.cloud, 'gcp') || github.event.inputs.cloud == 'all'
+    needs: build-and-push
     runs-on: ubuntu-latest
     environment:
       name: google-cloud
@@ -154,11 +162,18 @@ jobs:
           cluster_name: ${{ secrets.CLUSTER_NAME }}
           location: us-central1
 
+      - name: Get new container image tag
+        id: image-tag
+        run: |
+          echo "::set-output name=image::ghcr.io/$GITHUB_REPOSITORY:latest"
+      
       - name: Deploy to Kubernetes
         uses: Azure/k8s-deploy@v1
         with:
           manifests: |
             k8s.yaml
+          images: |
+            ${{ steps.image-tag.outputs.image }}
       
       - name: Get service ingress IP address
         run: |
