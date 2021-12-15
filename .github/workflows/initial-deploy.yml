@@ -83,6 +83,21 @@ jobs:
           manifests: |
             k8s.yaml
 
+      - name: Get service ingress hostname
+        run: |
+            echo "SVC_INGRESS_HOSTNAME=$(kubectl get svc monacloud-svc -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')" >> $GITHUB_ENV
+
+      - name: Update Cloudflare DNS records
+        uses: rez0n/create-dns-record@v2.1
+        with:
+          type: "CNAME"
+          name: "azure.monacloud.mvkaran.net"
+          content: ${{ env.SVC_INGRESS_HOSTNAME }}
+          ttl: 1
+          proxied: false
+          token: ${{ secrets.CLOUDFLARE_TOKEN }}
+          zone: ${{ secrets.CLOUDFLARE_ZONE_ID }}
+
   deploy-google-cloud:
     if: contains(github.event.inputs.cloud, 'gcp') || github.event.inputs.cloud == 'all'
     runs-on: ubuntu-latest
