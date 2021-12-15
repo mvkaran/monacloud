@@ -31,7 +31,7 @@ jobs:
         with:
           push: true
           tags: |
-            ghcr.io/${{ github.repository }}:${{ steps.tagName.outputs.tag }}
+            ghcr.io/${{ github.repository }}:${{ github.ref_name }}
             
   deploy-azure:
     needs: build-and-push
