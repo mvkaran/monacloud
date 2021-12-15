@@ -48,9 +48,9 @@ jobs:
         uses: azure/k8s-set-context@v1
         id: setcontext
         with:
-        method: kubeconfig
-        kubeconfig: ${{ secrets.KUBECONFIG }} 
-        context: ${{ secrets.CLUSTER_NAME }}  
+          method: kubeconfig
+          kubeconfig: ${{ secrets.KUBECONFIG }} 
+          context: ${{ secrets.CLUSTER_NAME }}  
 
       - name: Get tag name
         uses: olegtarasov/get-tag@v2.1
