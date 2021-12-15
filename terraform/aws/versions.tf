@@ -4,7 +4,7 @@ terraform {
     organization = "mvkaran"
 
     workspaces {
-      name = "monacloud-demo"
+      name = "monacloud-aws"
     }
   }
   
@@ -18,6 +18,11 @@ terraform {
     null = {
       source  = "hashicorp/null"
       version = "3.1.0"
+    }
+
+    github = {
+      source  = "integrations/github"
+      version = "~> 4.0"
     }
   }
 }

@@ -69,11 +69,13 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ap-south-1
+          aws-region: us-east-1
 
       - name: Set Kubeconfig
+        env:
+            CLUSTER_NAME: ${{ secrets.CLUSTER_NAME }}
         run: |
-         aws eks --region ap-south-1 update-kubeconfig --name monacloud 
+         aws eks --region us-east-1 update-kubeconfig --name "$CLUSTER_NAME" 
 
       - name: Deploy to Kubernetes
         uses: Azure/k8s-deploy@v1
