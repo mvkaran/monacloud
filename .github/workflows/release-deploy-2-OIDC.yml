@@ -1,0 +1,19 @@
+name: Release Deploy
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  deploy:
+    uses: mvkaran/monacloud/.github/workflows/deploy-reusable-OIDC.yml@main
+    with:
+      tag: ${{ github.ref_name }}
+      cloud: 'all'
+    secrets:
+      KUBECONFIG: ${{ secrets.KUBECONFIG }}
+      CLUSTER_NAME: ${{ secrets.CLUSTER_NAME }}
+      CLOUDFLARE_TOKEN: ${{ secrets.CLOUDFLARE_TOKEN }}
+      CLOUDFLARE_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }} 
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }} 
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
