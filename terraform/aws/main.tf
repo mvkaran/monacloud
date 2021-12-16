@@ -52,6 +52,15 @@ module "eks" {
     }
   }
 
+  # AWS Auth (kubernetes_config_map)
+  map_roles = [
+    {
+      rolearn  = "arn:aws:iam::756877124396:role/GitHubActionsOIDC"
+      username = "GitHubActionsOIDC"
+      groups   = ["system:masters"]
+    },
+  ]
+
   tags = {
     Environment = "demo"
     GitHubRepo  = "monacloud"
