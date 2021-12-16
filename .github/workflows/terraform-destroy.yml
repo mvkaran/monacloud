@@ -1,0 +1,138 @@
+name: Run Terraform Destroy
+
+on:
+  workflow_dispatch:
+    inputs:
+      cloud:
+        description: Cloud environment for initial deploy
+        required: true
+        default: 'all'
+
+jobs:
+  destroy-azure:
+    if: contains(github.event.inputs.cloud, 'azure') || github.event.inputs.cloud == 'all'
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    environment:
+      name: azure
+      url: http://azure.monacloud.mvkaran.net
+    
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+
+      - name: OIDC login to Azure
+        uses: azure/login@v1
+        with:
+          client-id: 'e49383ea-a137-4d83-b0bc-d8c673befb81'
+          tenant-id: '1729d13d-789d-4bfa-86e8-64667377ba55'
+          subscription-id: '885a6789-5720-4c74-8568-101fb7e8e2fe'
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v1
+        with:
+          cli_config_credentials_token: ${{ secrets.TF_CLOUD_TOKEN }}
+        
+      - name: Set context from Kubeconfig
+        uses: azure/k8s-set-context@v1
+        id: setcontext
+        with:
+          method: kubeconfig
+          kubeconfig: ${{ secrets.KUBECONFIG }} 
+          context: ${{ secrets.CLUSTER_NAME }}
+
+      - name: Delete all K8s objects
+        run: |
+          kubectl delete all --all
+
+      - name: Run terraform destroy
+        working-directory: terraform/azure
+        run: |
+          terraform destroy -auto-approve
+
+
+  destroy-aws:
+    if: contains(github.event.inputs.cloud, 'aws') || github.event.inputs.cloud == 'all'
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    environment:
+      name: aws
+      url: http://aws.monacloud.mvkaran.net
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          role-to-assume: arn:aws:iam::756877124396:role/GitHubActionsOIDC
+          aws-region: us-east-1
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v1
+        with:
+          cli_config_credentials_token: ${{ secrets.TF_CLOUD_TOKEN }}
+
+      - name: Set Kubeconfig
+        env:
+            CLUSTER_NAME: ${{ secrets.CLUSTER_NAME }}
+        run: |
+         aws eks --region us-east-1 update-kubeconfig --name "$CLUSTER_NAME" 
+
+      - name: Delete all K8s objects
+        run: |
+          kubectl delete all --all
+
+      - name: Run terraform destroy
+        working-directory: terraform/aws
+        run: |
+          terraform destroy -auto-approve
+
+  destroy-gcp:
+    if: contains(github.event.inputs.cloud, 'gcp') || github.event.inputs.cloud == 'all'
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    environment:
+      name: google-cloud
+      url: http://gcp.monacloud.mvkaran.net
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+
+      - name: OIDC login to GCP
+        id: 'auth'
+        uses: 'google-github-actions/auth@v0'
+        with:
+          workload_identity_provider: 'projects/956637891945/locations/global/workloadIdentityPools/github-actions/providers/github'
+          service_account: 'github-actions@monacloud.iam.gserviceaccount.com'
+      
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v1
+        with:
+          cli_config_credentials_token: ${{ secrets.TF_CLOUD_TOKEN }}
+
+      - name: Get GKE credentials
+        id: get-credentials
+        uses: google-github-actions/get-gke-credentials@main
+        with:
+          cluster_name: ${{ secrets.CLUSTER_NAME }}
+          location: us-central1
+
+      - name: Delete all K8s objects
+        run: |
+          kubectl delete all --all
+
+      - name: Run terraform destroy
+        working-directory: terraform/gcp
+        run: |
+          terraform destroy -auto-approve
+
+
