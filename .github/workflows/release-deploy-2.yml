@@ -1,8 +1,7 @@
 name: Release Deploy - Reusing workflow
 
 on:
-  release:
-    types: [published]
+  workflow_dispatch:
 
 jobs:
   deploy:
