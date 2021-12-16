@@ -50,6 +50,7 @@ jobs:
       - name: Run terraform destroy
         working-directory: terraform/azure
         run: |
+          terraform init
           terraform destroy -auto-approve
 
 
@@ -91,6 +92,7 @@ jobs:
       - name: Run terraform destroy
         working-directory: terraform/aws
         run: |
+          terraform init
           terraform destroy -auto-approve
 
   destroy-gcp:
@@ -133,6 +135,7 @@ jobs:
       - name: Run terraform destroy
         working-directory: terraform/gcp
         run: |
+          terraform init
           terraform destroy -auto-approve
 
 
