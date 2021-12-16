@@ -1,4 +1,4 @@
-name: Release Deploy
+name: Release Deploy - OIDC
 
 on:
   release:

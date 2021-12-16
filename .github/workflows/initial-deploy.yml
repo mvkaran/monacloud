@@ -1,5 +1,5 @@
 
-name: Initial Deploy
+name: Initial Deploy - Full workflow
 
 on:
   workflow_dispatch:

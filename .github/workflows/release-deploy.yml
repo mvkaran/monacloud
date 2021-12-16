@@ -1,8 +1,7 @@
-name: Release Deploy
+name: Release Deploy - Full workflow
 
 on:
-  release:
-    types: [published]
+  workflow_dispatch:
 
 jobs:
   
