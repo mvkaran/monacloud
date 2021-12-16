@@ -115,6 +115,9 @@ jobs:
     if: contains(inputs.cloud, 'aws') || inputs.cloud == 'all'
     needs: build-and-push
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
     environment:
       name: aws
       url: http://aws.monacloud.mvkaran.net
